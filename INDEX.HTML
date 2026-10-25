@@ -1,1 +1,682 @@
+<!DOCTYPE html>
+<html lang="cs" class="h-full bg-slate-900">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Living Modřice | Web App Prototype</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#312e81',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar for clean UI */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+    </style>
+</head>
+<body class="h-full bg-slate-950 text-slate-100 font-sans antialiased selection:bg-brand-600 selection:text-white flex flex-col justify-between">
 
+    <!-- Mobile App Container Wrapper -->
+    <div class="max-w-md mx-auto w-full min-h-screen bg-slate-900 text-slate-100 flex flex-col shadow-2xl border-x border-slate-800/80 relative pb-20">
+        
+        <!-- Status Bar Mockup for Mobile Feel -->
+        <div class="bg-slate-950 px-6 py-2 flex justify-between items-center text-xs text-slate-400 select-none border-b border-slate-800/50 sticky top-0 z-50">
+            <span class="font-semibold text-slate-300"><i class="fa-solid fa-graduation-cap text-brand-500 mr-1"></i> Student Living App</span>
+            <div class="flex items-center space-x-2">
+                <span class="bg-emerald-500/20 text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-500/30">
+                    <i class="fa-solid fa-wifi text-[9px] mr-1"></i> Online
+                </span>
+                <span id="currentTime" class="font-mono text-slate-400">12:00</span>
+            </div>
+        </div>
+
+        <!-- Header / Student Profile -->
+        <header class="p-5 bg-gradient-to-b from-slate-950 to-slate-900 border-b border-slate-800 space-y-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="relative">
+                        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-brand-600 to-indigo-400 p-0.5 shadow-lg shadow-brand-600/30">
+                            <div class="w-full h-full bg-slate-900 rounded-[14px] flex items-center justify-center font-black text-brand-400 text-lg">
+                                JN
+                            </div>
+                        </div>
+                        <span class="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-slate-900 rounded-full"></span>
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-lg text-white leading-tight">Jan Novák</h1>
+                        <p class="text-xs text-brand-400 font-medium">Pokoj č. 3 • Shared Room</p>
+                    </div>
+                </div>
+                <button onclick="toggleNotificationModal()" class="relative p-2.5 bg-slate-800/80 hover:bg-slate-700 text-slate-300 rounded-xl border border-slate-700/60 transition">
+                    <i class="fa-regular fa-bell"></i>
+                    <span id="notifBadge" class="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-brand-500 rounded-full ring-2 ring-slate-900"></span>
+                </button>
+            </div>
+
+            <!-- Address & Quick Info Banner -->
+            <div class="bg-slate-800/50 border border-slate-700/50 rounded-xl p-3 flex items-center justify-between text-xs text-slate-300">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-location-dot text-brand-500"></i>
+                    <span>nám. Svobody 79, Modřice</span>
+                </div>
+                <span class="bg-brand-900/60 text-brand-300 border border-brand-700/50 px-2 py-0.5 rounded font-mono text-[10px]">ID: SLM-003</span>
+            </div>
+        </header>
+
+        <!-- Main Dynamic Content Area -->
+        <main class="p-4 space-y-6 flex-1 overflow-y-auto">
+
+            <!-- TAB 1: NÁVŠTĚVY A PŘESPÁNÍ -->
+            <section id="tab-navstevy" class="tab-content space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="font-bold text-base text-white">Nahlášení přespání návštěvy</h2>
+                        <p class="text-xs text-slate-400">Pravidla a schvalování pro dvoulůžkový pokoj</p>
+                    </div>
+                    <span id="freeNightsBadge" class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-xs font-bold px-3 py-1 rounded-xl">
+                        2 / 2 zdarma
+                    </span>
+                </div>
+
+                <!-- Host Registration Form -->
+                <div class="bg-slate-800/60 border border-slate-700/70 rounded-2xl p-4 space-y-3">
+                    <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center">
+                        <i class="fa-solid fa-user-plus text-brand-500 mr-2"></i> Nová žádost o přespání
+                    </h3>
+
+                    <form id="guestForm" onsubmit="handleGuestSubmit(event)" class="space-y-3">
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-400 mb-1">Jméno a příjmení hosta</label>
+                            <input type="text" id="guestName" required placeholder="Napr. Petr Svoboda" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-brand-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-400 mb-1">Datum přespání</label>
+                            <input type="date" id="guestDate" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-brand-500">
+                        </div>
+
+                        <div id="feeNotice" class="hidden p-2.5 bg-amber-500/10 border border-amber-500/30 rounded-xl text-xs text-amber-300 flex items-start space-x-2">
+                            <i class="fa-solid fa-triangle-exclamation text-amber-400 mt-0.5"></i>
+                            <span>Bezplatné noci pro tento měsíc jsou vyčerpány. Bude účtován poplatek <strong>400 Kč / noc</strong>.</span>
+                        </div>
+
+                        <button type="submit" class="w-full bg-brand-600 hover:bg-brand-500 text-white font-bold py-2.5 rounded-xl transition text-xs shadow-lg shadow-brand-600/20">
+                            Odeslat ke schválení
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Roommate Approval Simulation Widget -->
+                <div class="bg-slate-800/40 border border-slate-800 rounded-2xl p-4 space-y-3">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                        <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center">
+                            <i class="fa-solid fa-user-check text-indigo-400 mr-2"></i> Simulace spolubydlícího
+                        </h3>
+                        <span class="text-[10px] text-slate-500">Pokoj č. 3</span>
+                    </div>
+
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        Pokud váš spolubydlící (např. <em>Karel M.</em>) hlásí návštěvu, zdeji můžete schválit nebo zamítnout:
+                    </p>
+
+                    <div id="roommateRequestCard" class="bg-slate-900 border border-slate-700/80 p-3 rounded-xl space-y-2">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <span class="text-xs font-bold text-slate-200 block">Host: Martin Kučera</span>
+                                <span class="text-[11px] text-slate-400">Žádá: Karel M. (spolubydlící) • <span id="simDate">Zítra</span></span>
+                            </div>
+                            <span id="roommateStatusBadge" class="bg-amber-500/20 text-amber-300 text-[10px] px-2 py-0.5 rounded font-bold">Čeká na schválení</span>
+                        </div>
+
+                        <div id="roommateActionButtons" class="grid grid-cols-2 gap-2 pt-1">
+                            <button onclick="respondRoommateRequest(true)" class="bg-emerald-600/80 hover:bg-emerald-500 text-white font-semibold py-1.5 rounded-lg text-xs transition flex items-center justify-center space-x-1">
+                                <i class="fa-solid fa-check"></i>
+                                <span>Schválit</span>
+                            </button>
+                            <button onclick="respondRoommateRequest(false)" class="bg-rose-600/80 hover:bg-rose-500 text-white font-semibold py-1.5 rounded-lg text-xs transition flex items-center justify-center space-x-1">
+                                <i class="fa-solid fa-xmark"></i>
+                                <span>Neschválit</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- History Feed -->
+                <div class="space-y-2">
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Moje nahlášené návštěvy</h3>
+                    <div id="guestHistoryList" class="space-y-2">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 2: KONTO JISTOTY A ENERGIE -->
+            <section id="tab-konto" class="tab-content hidden space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="font-bold text-base text-white">Konto Jistoty & Energie</h2>
+                        <p class="text-xs text-slate-400">Stav kauce a přehled fair-use limitů</p>
+                    </div>
+                </div>
+
+                <!-- Deposit Balance Card -->
+                <div class="bg-gradient-to-br from-brand-900/80 to-slate-900 border border-brand-700/50 rounded-2xl p-5 space-y-3 shadow-lg">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <span class="text-xs text-brand-300 font-medium">Vratná jistota (Kauce)</span>
+                            <div class="text-3xl font-black text-white mt-0.5">15 000 Kč</div>
+                        </div>
+                        <span class="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs px-2.5 py-1 rounded-full font-bold flex items-center space-x-1">
+                            <i class="fa-solid fa-shield-halved text-[10px]"></i>
+                            <span>Složeno</span>
+                        </span>
+                    </div>
+                    <div class="text-[11px] text-slate-400 border-t border-brand-800/60 pt-3 flex justify-between">
+                        <span>VS: 20260003</span>
+                        <span>Depozitní účet SLM</span>
+                    </div>
+                </div>
+
+                <!-- Fair Use Energy Progress -->
+                <div class="bg-slate-800/60 border border-slate-700/70 rounded-2xl p-4 space-y-3">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="text-xs font-bold text-slate-200 uppercase tracking-wider">Měsíční limit energií (Fair-Use)</h3>
+                            <p class="text-[11px] text-slate-400">Elektřina, teplo a teplá voda za říjen</p>
+                        </div>
+                        <span id="energyPercentageText" class="text-xs font-bold text-emerald-400 font-mono">72 %</span>
+                    </div>
+
+                    <!-- Progress bar -->
+                    <div class="w-full bg-slate-900 h-3 rounded-full overflow-hidden p-0.5 border border-slate-700">
+                        <div id="energyProgressBar" class="bg-gradient-to-r from-emerald-500 via-amber-400 to-rose-500 h-full rounded-full transition-all duration-500" style="width: 72%;"></div>
+                    </div>
+
+                    <div class="flex justify-between text-[11px] text-slate-400 font-mono">
+                        <span>Čerpáno: <strong id="energyUsedText" class="text-slate-200">1 440 Kč</strong></span>
+                        <span>Limit: <strong class="text-slate-200">2 000 Kč / měs</strong></span>
+                    </div>
+
+                    <!-- Simulation button to push over limit -->
+                    <div class="pt-2 border-t border-slate-700/60 flex items-center justify-between">
+                        <span class="text-[11px] text-slate-400">Testovací simulace:</span>
+                        <button onclick="toggleEnergyOverlimit()" id="energySimBtn" class="bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs px-2.5 py-1 rounded-lg transition font-medium">
+                            Nasimulovat překročení limitu
+                        </button>
+                    </div>
+                </div>
+
+                <!-- QR Payment Modal / Card (Shows when over limit or requested) -->
+                <div id="qrPaymentCard" class="bg-slate-800/90 border border-slate-700 rounded-2xl p-4 space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-700 pb-2">
+                        <h3 class="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center">
+                            <i class="fa-solid fa-qrcode text-brand-400 mr-2"></i> Bankovní QR Platba
+                        </h3>
+                        <span id="qrStatusBadge" class="bg-emerald-500/20 text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded">Vše vyrovnáno</span>
+                    </div>
+
+                    <div id="qrContainer" class="flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-4">
+                        <div class="bg-white p-2 rounded-xl shadow-md border border-slate-200 flex-shrink-0">
+                            <!-- SVG Simulated QR Code -->
+                            <svg class="w-28 h-28 text-slate-900" viewBox="0 0 100 100" fill="currentColor">
+                                <path d="M0,0 h30 v30 h-30 z M10,10 v10 h10 v-10 z" />
+                                <path d="M70,0 h30 v30 h-30 z M80,10 v10 h10 v-10 z" />
+                                <path d="M0,70 h30 v30 h-30 z M10,80 v10 h10 v-10 z" />
+                                <rect x="35" y="5" width="10" height="20" />
+                                <rect x="50" y="15" width="15" height="10" />
+                                <rect x="35" y="35" width="30" height="30" />
+                                <rect x="70" y="35" width="25" height="10" />
+                                <rect x="75" y="50" width="15" height="20" />
+                                <rect x="5" y="35" width="20" height="20" />
+                                <rect x="35" y="70" width="10" height="25" />
+                                <rect x="50" y="80" width="20" height="15" />
+                                <rect x="75" y="75" width="20" height="20" />
+                            </svg>
+                        </div>
+                        <div class="space-y-1 text-center sm:text-left text-xs">
+                            <div class="text-slate-400">Částka k úhradě:</div>
+                            <div id="qrAmountText" class="text-2xl font-black text-emerald-400">0 Kč</div>
+                            <div class="text-[11px] text-slate-400 font-mono">Účet: 2800123456/2010</div>
+                            <div class="text-[11px] text-slate-400 font-mono">VS: 20260003</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 3: PRÁDELNA A SUŠIČKA -->
+            <section id="tab-pradelna" class="tab-content hidden space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="font-bold text-base text-white">Rezervace Prádelny</h2>
+                        <p class="text-xs text-slate-400">Pračka č. 1 & Sušička č. 1</p>
+                    </div>
+                    <span class="text-xs bg-slate-800 text-slate-300 border border-slate-700 px-2.5 py-1 rounded-lg">
+                        Dnes (24. Říjen)
+                    </span>
+                </div>
+
+                <!-- Legend -->
+                <div class="flex items-center justify-around bg-slate-800/40 p-2.5 rounded-xl border border-slate-800 text-[11px]">
+                    <div class="flex items-center space-x-1.5">
+                        <span class="w-3 h-3 bg-slate-800 border border-slate-600 rounded"></span>
+                        <span class="text-slate-400">Volno</span>
+                    </div>
+                    <div class="flex items-center space-x-1.5">
+                        <span class="w-3 h-3 bg-brand-600 rounded"></span>
+                        <span class="text-slate-200 font-medium">Vaše rezervace</span>
+                    </div>
+                    <div class="flex items-center space-x-1.5">
+                        <span class="w-3 h-3 bg-rose-900/60 border border-rose-700 rounded"></span>
+                        <span class="text-slate-400">Obsazeno</span>
+                    </div>
+                </div>
+
+                <!-- Time Slots List -->
+                <div class="space-y-2" id="laundrySlotsList">
+                    <!-- Dynamic slots injected via JS -->
+                </div>
+            </section>
+
+            <!-- TAB 4: HLÁŠENÍ ZÁVAD & SPRÁVCE -->
+            <section id="tab-zavady" class="tab-content hidden space-y-4">
+                <div>
+                    <h2 class="font-bold text-base text-white">Komunikace se správcem</h2>
+                    <p class="text-xs text-slate-400">Hlášení technických závad a dotazy k ubytování</p>
+                </div>
+
+                <!-- New Issue Form -->
+                <div class="bg-slate-800/60 border border-slate-700/70 rounded-2xl p-4 space-y-3">
+                    <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center">
+                        <i class="fa-solid fa-wrench text-brand-500 mr-2"></i> Nový požadavek / závada
+                    </h3>
+
+                    <form id="issueForm" onsubmit="handleIssueSubmit(event)" class="space-y-3">
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-400 mb-1">Kategorie</label>
+                            <select id="issueCategory" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-brand-500">
+                                <option value="Voda & Odpady (např. kohoutek, WC)">Voda & Odpady (např. kohoutek, WC)</option>
+                                <option value="Elektřina & Osvětlení">Elektřina & Osvětlení</option>
+                                <option value="Internet & Aplikace">Internet & Aplikace</option>
+                                <option value="Vybavení pokoje / Zámky">Vybavení pokoje / Zámky</option>
+                                <option value="Jiné">Jiné</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-400 mb-1">Popis závady nebo dotaz</label>
+                            <textarea id="issueText" required rows="3" placeholder="Popište podrobně vzniklý problém..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-brand-500"></textarea>
+                        </div>
+
+                        <button type="submit" class="w-full bg-brand-600 hover:bg-brand-500 text-white font-bold py-2.5 rounded-xl transition text-xs shadow-lg shadow-brand-600/20 flex items-center justify-center space-x-2">
+                            <i class="fa-solid fa-paper-plane"></i>
+                            <span>Odeslat správci</span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Submitted Tickets Feed -->
+                <div class="space-y-2">
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Moje hlášení</h3>
+                    <div id="issueHistoryList" class="space-y-2">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Bottom Navigation Bar -->
+        <nav class="bg-slate-950/95 backdrop-blur-md border-t border-slate-800/80 fixed bottom-0 max-w-md w-full grid grid-cols-4 z-40 text-[10px] font-medium">
+            <button onclick="switchTab('navstevy')" id="nav-navstevy" class="nav-btn active flex flex-col items-center justify-center py-2.5 text-brand-500 transition">
+                <i class="fa-solid fa-user-group text-base mb-1"></i>
+                <span>Návštěvy</span>
+            </button>
+            <button onclick="switchTab('konto')" id="nav-konto" class="nav-btn flex flex-col items-center justify-center py-2.5 text-slate-400 hover:text-slate-200 transition">
+                <i class="fa-solid fa-wallet text-base mb-1"></i>
+                <span>Konto</span>
+            </button>
+            <button onclick="switchTab('pradelna')" id="nav-pradelna" class="nav-btn flex flex-col items-center justify-center py-2.5 text-slate-400 hover:text-slate-200 transition">
+                <i class="fa-solid fa-shirt text-base mb-1"></i>
+                <span>Prádelna</span>
+            </button>
+            <button onclick="switchTab('zavady')" id="nav-zavady" class="nav-btn flex flex-col items-center justify-center py-2.5 text-slate-400 hover:text-slate-200 transition">
+                <i class="fa-solid fa-headset text-base mb-1"></i>
+                <span>Správce</span>
+            </button>
+        </nav>
+
+        <!-- Toast Notification Popover -->
+        <div id="toast" class="fixed top-12 left-1/2 transform -translate-x-1/2 bg-brand-600 text-white px-4 py-2 rounded-xl shadow-2xl text-xs font-semibold hidden z-50 flex items-center space-x-2 border border-brand-400/30">
+            <i class="fa-solid fa-circle-check"></i>
+            <span id="toastMessage">Akce proběhla úspěšně</span>
+        </div>
+
+    </div>
+
+    <script>
+        // --- APP STATE ---
+        const state = {
+            freeNightsRemaining: 2,
+            guests: [
+                { id: 1, name: 'Michal Malý', date: '2026-10-12', fee: 0, status: 'Schváleno (Zdarma)' }
+            ],
+            roommateRequestApproved: null, // null, true, false
+            energyOverlimit: false,
+            laundrySlots: [
+                { time: '08:00 - 10:00', status: 'available' },
+                { time: '10:00 - 12:00', status: 'occupied', user: 'Pokoj 5' },
+                { time: '12:00 - 14:00', status: 'available' },
+                { time: '14:00 - 16:00', status: 'booked' }, // Booked by user
+                { time: '16:00 - 18:00', status: 'available' },
+                { time: '18:00 - 20:00', status: 'occupied', user: 'Pokoj 2' },
+                { time: '20:00 - 22:00', status: 'available' }
+            ],
+            issues: [
+                { id: 101, category: 'Voda & Odpady', text: 'Mírný kapající kohoutek v koupelně.', date: '22. 10. 2026', status: 'Vyřizuje se' }
+            ]
+        };
+
+        // --- INIT ON LOAD ---
+        window.onload = function() {
+            // Set current time mock
+            const now = new Date();
+            document.getElementById('currentTime').innerText = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+            
+            // Set default date picker to tomorrow
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            document.getElementById('guestDate').value = tomorrow.toISOString().split('T')[0];
+            document.getElementById('simDate').innerText = tomorrow.toLocaleDateString('cs-CZ');
+
+            renderGuestHistory();
+            renderLaundrySlots();
+            renderIssuesHistory();
+            updateFreeNightsUI();
+        };
+
+        // --- NAVIGATION CONTROLLER ---
+        function switchTab(tabId) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            // Show selected tab
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+
+            // Reset navigation styles
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('text-brand-500');
+                btn.classList.add('text-slate-400');
+            });
+            // Highlight active button
+            const activeBtn = document.getElementById(`nav-${tabId}`);
+            activeBtn.classList.remove('text-slate-400');
+            activeBtn.classList.add('text-brand-500');
+        }
+
+        // --- GUEST MODULE LOGIC ---
+        function updateFreeNightsUI() {
+            const badge = document.getElementById('freeNightsBadge');
+            const feeNotice = document.getElementById('feeNotice');
+
+            badge.innerText = `${state.freeNightsRemaining} / 2 zdarma`;
+            
+            if (state.freeNightsRemaining <= 0) {
+                badge.classList.remove('bg-emerald-500/10', 'text-emerald-400', 'border-emerald-500/30');
+                badge.classList.add('bg-amber-500/10', 'text-amber-400', 'border-amber-500/30');
+                feeNotice.classList.remove('hidden');
+            } else {
+                badge.classList.remove('bg-amber-500/10', 'text-amber-400', 'border-amber-500/30');
+                badge.classList.add('bg-emerald-500/10', 'text-emerald-400', 'border-emerald-500/30');
+                feeNotice.classList.add('hidden');
+            }
+        }
+
+        function handleGuestSubmit(e) {
+            e.preventDefault();
+            const name = document.getElementById('guestName').value.trim();
+            const date = document.getElementById('guestDate').value;
+
+            if (!name || !date) return;
+
+            let fee = 0;
+            let status = 'Čeká na schválení spolubydlícím';
+
+            if (state.freeNightsRemaining > 0) {
+                state.freeNightsRemaining--;
+                fee = 0;
+            } else {
+                fee = 400;
+            }
+
+            state.guests.unshift({
+                id: Date.now(),
+                name,
+                date,
+                fee,
+                status
+            });
+
+            document.getElementById('guestName').value = '';
+            updateFreeNightsUI();
+            renderGuestHistory();
+            showToast('Žádost o návštěvu byla odeslána!');
+        }
+
+        function renderGuestHistory() {
+            const container = document.getElementById('guestHistoryList');
+            if (state.guests.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-500 italic p-2">Žádné nahlášené návštěvy.</p>`;
+                return;
+            }
+
+            container.innerHTML = state.guests.map(g => `
+                <div class="bg-slate-800/40 border border-slate-700/60 p-3 rounded-xl flex justify-between items-center text-xs">
+                    <div>
+                        <div class="font-bold text-slate-200">${g.name}</div>
+                        <div class="text-[11px] text-slate-400">${g.date} ${g.fee > 0 ? `• Poplatek: <strong class="text-amber-400">${g.fee} Kč</strong>` : '• (Zdarma)'}</div>
+                    </div>
+                    <span class="bg-brand-500/20 text-brand-300 border border-brand-500/30 text-[10px] px-2 py-0.5 rounded font-semibold">${g.status}</span>
+                </div>
+            `).join('');
+        }
+
+        function respondRoommateRequest(approved) {
+            const card = document.getElementById('roommateRequestCard');
+            const btns = document.getElementById('roommateActionButtons');
+            const badge = document.getElementById('roommateStatusBadge');
+
+            if (approved) {
+                badge.className = 'bg-emerald-500/20 text-emerald-300 text-[10px] px-2 py-0.5 rounded font-bold';
+                badge.innerText = 'Schváleno vámi';
+                btns.innerHTML = `<span class="text-xs text-emerald-400 font-semibold col-span-2 text-center py-1"><i class="fa-solid fa-circle-check mr-1"></i> Návštěva byla schválena.</span>`;
+                showToast('Návštěva spolubydlícího schválena');
+            } else {
+                badge.className = 'bg-rose-500/20 text-rose-300 text-[10px] px-2 py-0.5 rounded font-bold';
+                badge.innerText = 'Zamítnuto vámi';
+                btns.innerHTML = `<span class="text-xs text-rose-400 font-semibold col-span-2 text-center py-1"><i class="fa-solid fa-circle-xmark mr-1"></i> Návštěva byla zamítnuta.</span>`;
+                showToast('Návštěva spolubydlícího zamítnuta');
+            }
+        }
+
+        // --- ENERGY & KONTO MODULE LOGIC ---
+        function toggleEnergyOverlimit() {
+            state.energyOverlimit = !state.energyOverlimit;
+            const bar = document.getElementById('energyProgressBar');
+            textPct = document.getElementById('energyPercentageText');
+            textUsed = document.getElementById('energyUsedText');
+            btn = document.getElementById('energySimBtn');
+            qrBadge = document.getElementById('qrStatusBadge');
+            qrAmount = document.getElementById('qrAmountText');
+
+            if (state.energyOverlimit) {
+                // Over limit simulation (125%)
+                bar.style.width = '100%';
+                textPct.innerText = '125 %';
+                textPct.className = 'text-xs font-bold text-rose-400 font-mono';
+                textUsed.innerText = '2 500 Kč';
+                btn.innerText = 'Vrátit pod limit (Normál)';
+                btn.className = 'bg-rose-900/60 hover:bg-rose-800 text-rose-200 text-xs px-2.5 py-1 rounded-lg transition font-medium border border-rose-700';
+
+                qrBadge.className = 'bg-rose-500/20 text-rose-400 text-[10px] font-bold px-2 py-0.5 rounded';
+                qrBadge.innerText = 'Vyžaduje úhradu nedoplatku';
+                qrAmount.innerText = '500 Kč';
+                qrAmount.className = 'text-2xl font-black text-rose-400';
+                showToast('Simulace: Překročen limit energií o 500 Kč');
+            } else {
+                // Normal status (72%)
+                bar.style.width = '72%';
+                textPct.innerText = '72 %';
+                textPct.className = 'text-xs font-bold text-emerald-400 font-mono';
+                textUsed.innerText = '1 440 Kč';
+                btn.innerText = 'Nasimulovat překročení limitu';
+                btn.className = 'bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs px-2.5 py-1 rounded-lg transition font-medium';
+
+                qrBadge.className = 'bg-emerald-500/20 text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded';
+                qrBadge.innerText = 'Vše vyrovnáno';
+                qrAmount.innerText = '0 Kč';
+                qrAmount.className = 'text-2xl font-black text-emerald-400';
+            }
+        }
+
+        // --- LAUNDRY LOGIC ---
+        function renderLaundrySlots() {
+            const container = document.getElementById('laundrySlotsList');
+            container.innerHTML = state.laundrySlots.map((s, idx) => {
+                if (s.status === 'booked') {
+                    return `
+                        <div class="bg-brand-900/40 border border-brand-600/60 p-3 rounded-xl flex justify-between items-center text-xs">
+                            <div class="flex items-center space-x-3">
+                                <i class="fa-solid fa-shirt text-brand-400 text-sm"></i>
+                                <div>
+                                    <span class="font-bold text-white block">${s.time}</span>
+                                    <span class="text-[10px] text-brand-300">Rezervováno vámi</span>
+                                </div>
+                            </div>
+                            <button onclick="toggleLaundrySlot(${idx})" class="bg-rose-600/30 hover:bg-rose-600/50 text-rose-300 text-[11px] px-2.5 py-1 rounded-lg transition font-medium border border-rose-500/30">
+                                Zrušit
+                            </button>
+                        </div>
+                    `;
+                } else if (s.status === 'occupied') {
+                    return `
+                        <div class="bg-slate-900 border border-slate-800 p-3 rounded-xl flex justify-between items-center text-xs opacity-60">
+                            <div class="flex items-center space-x-3">
+                                <i class="fa-solid fa-lock text-slate-500 text-sm"></i>
+                                <div>
+                                    <span class="font-semibold text-slate-400 block">${s.time}</span>
+                                    <span class="text-[10px] text-slate-500">Obsazeno (${s.user})</span>
+                                </div>
+                            </div>
+                            <span class="text-[10px] bg-slate-800 text-slate-500 px-2 py-0.5 rounded">Nedostupné</span>
+                        </div>
+                    `;
+                } else {
+                    return `
+                        <div class="bg-slate-800/40 border border-slate-700/60 p-3 rounded-xl flex justify-between items-center text-xs hover:border-slate-600 transition">
+                            <div class="flex items-center space-x-3">
+                                <i class="fa-solid fa-clock text-slate-400 text-sm"></i>
+                                <span class="font-semibold text-slate-200">${s.time}</span>
+                            </div>
+                            <button onclick="toggleLaundrySlot(${idx})" class="bg-brand-600 hover:bg-brand-500 text-white text-[11px] px-3 py-1 rounded-lg transition font-bold shadow-sm">
+                                Zarezervovat
+                            </button>
+                        </div>
+                    `;
+                }
+            }).join('');
+        }
+
+        function toggleLaundrySlot(idx) {
+            const slot = state.laundrySlots[idx];
+            if (slot.status === 'available') {
+                slot.status = 'booked';
+                showToast(`Slot ${slot.time} zarezervován!`);
+            } else if (slot.status === 'booked') {
+                slot.status = 'available';
+                showToast(`Rezervace ${slot.time} byla zrušena.`);
+            }
+            renderLaundrySlots();
+        }
+
+        // --- ISSUES / MANAGER COMMUNICATION LOGIC ---
+        function handleIssueSubmit(e) {
+            e.preventDefault();
+            const category = document.getElementById('issueCategory').value;
+            const text = document.getElementById('issueText').value.trim();
+
+            if (!text) return;
+
+            const today = new Date().toLocaleDateString('cs-CZ');
+
+            state.issues.unshift({
+                id: Date.now(),
+                category,
+                text,
+                date: today,
+                status: 'Odesláno správci'
+            });
+
+            document.getElementById('issueText').value = '';
+            renderIssuesHistory();
+            showToast('Závada byla úspěšně nahlášena!');
+        }
+
+        function renderIssuesHistory() {
+            const container = document.getElementById('issueHistoryList');
+            if (state.issues.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-500 italic p-2">Žádné nahlášené závady.</p>`;
+                return;
+            }
+
+            container.innerHTML = state.issues.map(i => `
+                <div class="bg-slate-800/40 border border-slate-700/60 p-3 rounded-xl space-y-1.5 text-xs">
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-brand-400">${i.category}</span>
+                        <span class="bg-amber-500/20 text-amber-300 text-[10px] px-2 py-0.5 rounded font-semibold">${i.status}</span>
+                    </div>
+                    <p class="text-slate-300 leading-normal">${i.text}</p>
+                    <div class="text-[10px] text-slate-500">${i.date}</div>
+                </div>
+            `).join('');
+        }
+
+        // --- TOAST NOTIFICATION HELPER ---
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMessage');
+            toastMsg.innerText = msg;
+            toast.classList.remove('hidden');
+
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3000);
+        }
+
+        function toggleNotificationModal() {
+            showToast('Žádná nová oznámení od správce.');
+        }
+    </script>
+</body>
+</html>
